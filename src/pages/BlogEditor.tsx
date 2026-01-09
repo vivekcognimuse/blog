@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useBlogStore } from '@/store/blogStore';
 import { Block, BlogPost } from '@/types/blog';
@@ -13,7 +13,6 @@ import {
   Save,
   Eye,
   Trash2,
-  Smile,
   X,
   Plus,
 } from 'lucide-react';
@@ -33,11 +32,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
 import { toast } from 'sonner';
 import { allTags } from '@/data/sampleBlogs';
 import coverMindfulness from '@/assets/cover-mindfulness.jpg';
+
+const commonEmojis = ['📝', '✨', '🎯', '💡', '🚀', '⭐', '🔥', '💪', '🎉', '📚', '🧘', '🍜', '☀️', '🧠', '🌟', '🌱', '💭', '⚡', '🌶️', '📖'];
 
 export default function BlogEditor() {
   const { id } = useParams();
@@ -181,15 +180,21 @@ export default function BlogEditor() {
                 {emoji}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 border-none" align="start">
-              <Picker
-                data={data}
-                onEmojiSelect={(e: { native: string }) => {
-                  setEmoji(e.native);
-                  setEmojiPickerOpen(false);
-                }}
-                theme="light"
-              />
+            <PopoverContent className="w-auto p-2" align="start">
+              <div className="grid grid-cols-5 gap-1">
+                {commonEmojis.map((e) => (
+                  <button
+                    key={e}
+                    onClick={() => {
+                      setEmoji(e);
+                      setEmojiPickerOpen(false);
+                    }}
+                    className="h-8 w-8 text-lg hover:bg-muted rounded flex items-center justify-center transition-colors"
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
             </PopoverContent>
           </Popover>
 
