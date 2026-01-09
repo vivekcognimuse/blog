@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Block, BlockType, BlogPost } from '@/types/blog';
+import { Block, BlockType } from '@/types/blog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,8 +31,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import data from '@emoji-mart/data';
-import Picker from '@emoji-mart/react';
 import { cn } from '@/lib/utils';
 
 interface BlockEditorProps {
@@ -53,6 +51,8 @@ const blockTypes: { type: BlockType; label: string; icon: React.ReactNode }[] = 
   { type: 'code', label: 'Code', icon: <Code className="h-4 w-4" /> },
   { type: 'image', label: 'Image', icon: <Image className="h-4 w-4" /> },
 ];
+
+const commonEmojis = ['📝', '✨', '🎯', '💡', '🚀', '⭐', '🔥', '💪', '🎉', '📚', '🧘', '🍜', '☀️', '🧠', '🌟', '🌱', '💭', '⚡', '🌶️', '📖'];
 
 export function BlockEditor({ blocks, onChange }: BlockEditorProps) {
   const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null);
@@ -388,15 +388,21 @@ function EmojiPicker({ emoji, onSelect }: EmojiPickerProps) {
           {emoji || <Smile className="h-4 w-4 text-muted-foreground" />}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 border-none" align="start">
-        <Picker
-          data={data}
-          onEmojiSelect={(e: { native: string }) => {
-            onSelect(e.native);
-            setOpen(false);
-          }}
-          theme="light"
-        />
+      <PopoverContent className="w-auto p-2" align="start">
+        <div className="grid grid-cols-5 gap-1">
+          {commonEmojis.map((e) => (
+            <button
+              key={e}
+              onClick={() => {
+                onSelect(e);
+                setOpen(false);
+              }}
+              className="h-8 w-8 text-lg hover:bg-muted rounded flex items-center justify-center transition-colors"
+            >
+              {e}
+            </button>
+          ))}
+        </div>
       </PopoverContent>
     </Popover>
   );
