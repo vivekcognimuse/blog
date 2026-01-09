@@ -26,21 +26,40 @@ export function BlogCard({ blog, isAdmin = false }: BlogCardProps) {
   return (
     <Link
       to={linkPath}
-      className="group block animate-fade-in"
+      className="group block overflow-hidden rounded-xl bg-card border border-border shadow-sm hover:shadow-lg transition-all duration-300 animate-fade-in"
     >
-      <div className="relative aspect-[16/10] overflow-hidden rounded-lg mb-4">
+      <div className="relative aspect-[16/10] overflow-hidden">
         <img
           src={blog.coverImage}
           alt={blog.title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 grayscale-[30%] opacity-90"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-foreground/10" />
       </div>
-      <div>
-        <h3 className="font-serif text-lg font-medium text-foreground group-hover:text-accent transition-colors line-clamp-2 mb-2">
-          {blog.title}
-        </h3>
-        <p className="text-xs text-muted-foreground font-sans">
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-2xl">{blog.emoji}</span>
+          <h3 className="font-serif text-xl font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+            {blog.title}
+          </h3>
+        </div>
+        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+          {blog.description}
+        </p>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {blog.tags.map((tag) => (
+            <Badge
+              key={tag}
+              variant="outline"
+              className={cn(
+                'text-xs font-medium border',
+                tagColors[tag] || 'bg-muted text-muted-foreground'
+              )}
+            >
+              {tag}
+            </Badge>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
           {format(new Date(blog.publishedDate), 'MMMM d, yyyy')}
         </p>
       </div>

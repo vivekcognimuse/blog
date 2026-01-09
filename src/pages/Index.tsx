@@ -114,10 +114,10 @@ export default function Index() {
 
       {/* Footer / Contact */}
       <footer className="bg-foreground text-background py-16">
-        <div className="container text-center">
+        <div className="container">
           <h2 className="font-serif text-2xl font-semibold mb-8">Contact Manoj</h2>
           
-          <div className="space-y-4 font-sans inline-flex flex-col items-center">
+          <div className="space-y-4 font-sans">
             <a 
               href="mailto:manoj@cognimuse.com" 
               className="flex items-center gap-3 text-background/80 hover:text-background transition-colors"
@@ -134,7 +134,7 @@ export default function Index() {
             </a>
           </div>
           
-          <div className="mt-12 pt-8 border-t border-background/20 text-sm text-background/60">
+          <div className="mt-12 pt-8 border-t border-background/20 text-center text-sm text-background/60">
             Built with ❤️ using Lovable
           </div>
         </div>
