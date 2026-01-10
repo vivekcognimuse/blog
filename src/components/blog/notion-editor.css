@@ -1,0 +1,403 @@
+/* Custom styling for BlockNote editor to match your design system */
+
+.notion-editor-wrapper {
+  @apply w-full;
+  position: relative;
+}
+
+.notion-editor-wrapper > div {
+  @apply w-full min-h-[400px];
+  position: relative;
+}
+
+/* Ensure editor container is visible */
+.notion-editor-wrapper .bn-container {
+  @apply w-full min-h-[400px];
+  display: block !important;
+  visibility: visible !important;
+  position: relative;
+}
+
+/* ProseMirror editor visibility */
+.notion-editor-wrapper .ProseMirror {
+  @apply w-full min-h-[400px] py-4;
+  display: block !important;
+  visibility: visible !important;
+  outline: none;
+}
+
+/* Override BlockNote default styles to match your design */
+.bn-container {
+  @apply font-sans;
+  font-family: var(--font-sans);
+}
+
+/* Headings - use serif font */
+.bn-block-content[data-content-type="heading"] h1,
+.bn-block-content[data-content-type="heading"] h2,
+.bn-block-content[data-content-type="heading"] h3 {
+  font-family: var(--font-serif);
+  @apply font-medium tracking-tight;
+}
+
+.bn-block-content[data-content-type="heading-1"] h1 {
+  @apply text-4xl mb-6 mt-8;
+}
+
+.bn-block-content[data-content-type="heading-2"] h2 {
+  @apply text-2xl mb-4 mt-6;
+}
+
+.bn-block-content[data-content-type="heading-3"] h3 {
+  @apply text-xl mb-3 mt-5;
+}
+
+/* Paragraphs */
+.bn-block-content[data-content-type="paragraph"] p {
+  @apply text-lg leading-relaxed mb-4;
+  font-family: var(--font-sans);
+}
+
+/* Lists */
+.bn-block-content[data-content-type="bulletListItem"] ul,
+.bn-block-content[data-content-type="numberedListItem"] ol {
+  @apply mb-4 pl-6;
+}
+
+.bn-block-content[data-content-type="bulletListItem"] li,
+.bn-block-content[data-content-type="numberedListItem"] li {
+  @apply text-lg leading-relaxed mb-2;
+  font-family: var(--font-sans);
+}
+
+/* Quotes */
+.bn-block-content[data-content-type="quote"] blockquote {
+  @apply border-l-4 border-secondary pl-6 py-2 my-6 italic text-muted-foreground;
+  font-family: var(--font-serif);
+  @apply text-xl;
+}
+
+/* Code blocks */
+.bn-block-content[data-content-type="codeBlock"] pre {
+  @apply bg-muted p-4 rounded-lg overflow-x-auto mb-4;
+}
+
+.bn-block-content[data-content-type="codeBlock"] code {
+  @apply text-sm font-mono;
+}
+
+/* Callouts */
+.bn-block-content[data-content-type="callout"] {
+  @apply bg-muted rounded-lg p-4 my-4 flex items-start gap-3;
+}
+
+/* Dividers */
+.bn-block-content[data-content-type="divider"] hr {
+  @apply my-8 border-border;
+}
+
+/* Images */
+.bn-block-content[data-content-type="image"] img {
+  @apply rounded-lg w-full object-cover my-6;
+}
+
+/* Editor container */
+.bn-editor {
+  @apply bg-transparent;
+  min-height: 400px;
+}
+
+/* Ensure editor is visible */
+.notion-editor-wrapper {
+  @apply w-full;
+  min-height: 400px;
+}
+
+.notion-editor-wrapper > div {
+  @apply w-full;
+  min-height: 400px;
+}
+
+/* Block menu (slash command) */
+.bn-block-menu {
+  @apply bg-popover border border-border rounded-lg shadow-lg;
+}
+
+.bn-block-menu-item {
+  @apply text-foreground hover:bg-muted;
+}
+
+/* Placeholder text */
+.bn-block-content[data-content-type] [data-placeholder]::before {
+  @apply text-muted-foreground/50;
+}
+
+/* Focus styles */
+.bn-block-content:focus-within {
+  @apply outline-none;
+}
+
+/* Drag handle - ensure it's visible on hover */
+.bn-block-handle {
+  @apply opacity-0 transition-opacity;
+  position: absolute;
+  left: -30px;
+  cursor: grab;
+}
+
+.bn-block-handle:hover {
+  @apply opacity-100;
+}
+
+/* Block wrapper - show handle on hover */
+.bn-block-content-wrapper:hover .bn-block-handle,
+.bn-block:hover .bn-block-handle {
+  @apply opacity-100;
+}
+
+/* Side menu (plus button and drag handle container) */
+.bn-side-menu {
+  @apply opacity-0 transition-opacity;
+  position: absolute;
+  left: -40px;
+}
+
+.bn-block:hover .bn-side-menu,
+.bn-block-content-wrapper:hover .bn-side-menu {
+  @apply opacity-100;
+}
+
+/* Plus button in side menu */
+.bn-side-menu-button {
+  @apply text-foreground hover:bg-muted rounded p-1;
+  cursor: pointer;
+}
+
+/* Block menu (dropdown when clicking drag handle) */
+.bn-block-menu {
+  @apply bg-popover border border-border rounded-lg shadow-lg z-50;
+  min-width: 200px;
+}
+
+.bn-block-menu-item {
+  @apply text-foreground hover:bg-muted px-3 py-2 cursor-pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bn-block-menu-item:hover {
+  @apply bg-muted;
+}
+
+/* Inline formatting toolbar */
+.bn-inline-content {
+  @apply text-foreground;
+}
+
+/* Ensure all text in editor is readable */
+.bn-editor {
+  @apply text-foreground;
+}
+
+.bn-editor * {
+  color: inherit;
+}
+
+/* Block content text */
+.bn-block-content {
+  @apply text-foreground;
+  position: relative;
+}
+
+.bn-block-content p,
+.bn-block-content h1,
+.bn-block-content h2,
+.bn-block-content h3,
+.bn-block-content li,
+.bn-block-content span {
+  @apply text-foreground;
+}
+
+/* Block wrapper - ensure blocks are positioned relatively for controls */
+.bn-block,
+.bn-block-content-wrapper {
+  position: relative;
+  padding-left: 40px;
+  margin-left: -40px;
+}
+
+.bn-block:hover,
+.bn-block-content-wrapper:hover {
+  @apply bg-muted/30 rounded;
+}
+
+/* Ensure block controls are visible */
+.bn-block[data-node-type] {
+  position: relative;
+}
+
+/* Make sure the editor shows block structure */
+.bn-editor .bn-block {
+  margin-bottom: 4px;
+  padding: 4px 0;
+}
+
+/* ProseMirror editor content */
+.ProseMirror {
+  @apply text-foreground;
+}
+
+.ProseMirror p,
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror li,
+.ProseMirror span {
+  @apply text-foreground;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Selection */
+.bn-selection {
+  @apply bg-primary/20;
+}
+
+/* ============================================
+   BLOCKNOTE UI CONTROLS - Make them visible
+   ============================================ */
+
+/* Side menu container (holds drag handle and plus button) */
+.bn-side-menu,
+[class*="side-menu"],
+[class*="SideMenu"] {
+  @apply opacity-100 !important;
+  position: absolute !important;
+  left: -36px !important;
+  top: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  z-index: 10 !important;
+}
+
+/* Show side menu on block hover */
+.bn-block:hover .bn-side-menu,
+.bn-block:hover [class*="side-menu"],
+.bn-block:hover [class*="SideMenu"],
+.bn-block-content-wrapper:hover .bn-side-menu,
+.bn-block-content-wrapper:hover [class*="side-menu"] {
+  @apply opacity-100 !important;
+}
+
+/* Drag handle button */
+.bn-side-menu-button[data-drag-handle],
+[class*="drag-handle"],
+[class*="DragHandle"] {
+  @apply opacity-100 !important;
+  cursor: grab !important;
+  color: hsl(var(--muted-foreground)) !important;
+  padding: 4px !important;
+  border-radius: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bn-side-menu-button[data-drag-handle]:hover,
+[class*="drag-handle"]:hover {
+  @apply bg-muted !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Plus button to add blocks */
+.bn-side-menu-button[data-add-block],
+[class*="add-block"],
+[class*="AddBlock"] {
+  @apply opacity-100 !important;
+  cursor: pointer !important;
+  color: hsl(var(--muted-foreground)) !important;
+  padding: 4px !important;
+  border-radius: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.bn-side-menu-button[data-add-block]:hover,
+[class*="add-block"]:hover {
+  @apply bg-muted !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Block menu (dropdown when clicking) */
+.bn-block-menu,
+[class*="block-menu"],
+[class*="BlockMenu"] {
+  @apply bg-popover border border-border rounded-lg shadow-lg !important;
+  min-width: 240px !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+  z-index: 1000 !important;
+  padding: 4px !important;
+}
+
+.bn-block-menu-item,
+[class*="block-menu-item"] {
+  @apply text-foreground hover:bg-muted !important;
+  padding: 8px 12px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+}
+
+.bn-block-menu-item:hover,
+[class*="block-menu-item"]:hover {
+  @apply bg-muted !important;
+}
+
+/* Ensure blocks have space for side menu */
+.bn-block,
+[data-node-type] {
+  position: relative !important;
+  padding-left: 48px !important;
+  margin-left: 0 !important;
+  min-height: 32px !important;
+}
+
+.bn-block:hover,
+[data-node-type]:hover {
+  @apply bg-muted/20 rounded !important;
+}
+
+/* Formatting toolbar */
+.bn-inline-content,
+[class*="formatting-toolbar"],
+[class*="FormattingToolbar"] {
+  @apply bg-popover border border-border rounded-lg shadow-lg !important;
+  padding: 4px !important;
+  display: flex !important;
+  gap: 2px !important;
+  z-index: 1000 !important;
+}
+
+/* Make sure all BlockNote UI elements are visible */
+.bn-editor * {
+  visibility: visible !important;
+}
+
+/* Debug: Show block structure */
+.bn-block::before {
+  content: '';
+  position: absolute;
+  left: -48px;
+  top: 0;
+  width: 40px;
+  height: 100%;
+  /* Uncomment to see block boundaries */
+  /* border: 1px dashed rgba(128, 128, 128, 0.2); */
+}
+

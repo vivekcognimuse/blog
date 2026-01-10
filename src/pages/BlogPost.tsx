@@ -1,12 +1,14 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useBlogStore } from '@/store/blogStore';
+import { useParams, Link } from 'react-router-dom';
+import { useBlog } from '@/hooks/useBlogs';
 import { BlockRenderer } from '@/components/blog/BlockRenderer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Share2, Search } from 'lucide-react';
+import { ArrowLeft, Share2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { blockNoteToBlocks } from '@/lib/api/blogs';
+import { Block } from '@/types/blog';
 
 const tagColors: Record<string, string> = {
   'Books': 'bg-tag-books/20 text-tag-books border-tag-books/30',
@@ -21,10 +23,15 @@ const tagColors: Record<string, string> = {
 
 export default function BlogPost() {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { getBlogById } = useBlogStore();
+  const { data: blog, isLoading } = useBlog(id);
 
-  const blog = id ? getBlogById(id) : null;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   if (!blog) {
     return (
@@ -38,6 +45,28 @@ export default function BlogPost() {
       </div>
     );
   }
+
+  // Convert blocks to Block format for rendering
+  const displayBlocks: Block[] = (() => {
+    if (!blog.blocks || !Array.isArray(blog.blocks) || blog.blocks.length === 0) {
+      return [];
+    }
+
+    // Check if blocks are in BlockNote format (content is array) or Block format (content is string)
+    const firstBlock = blog.blocks[0];
+    if (firstBlock && 'type' in firstBlock) {
+      if (Array.isArray(firstBlock.content)) {
+        // BlockNote format - convert to Block format
+        return blockNoteToBlocks(blog.blocks as any[]);
+      } else if (typeof firstBlock.content === 'string') {
+        // Already in Block format
+        return blog.blocks as Block[];
+      }
+    }
+    
+    // Default: assume BlockNote format and convert
+    return blockNoteToBlocks(blog.blocks as any[]);
+  })();
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -62,9 +91,6 @@ export default function BlogPost() {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon">
-              <Search className="h-4 w-4" />
-            </Button>
             <Button variant="ghost" size="icon" onClick={handleShare}>
               <Share2 className="h-4 w-4" />
             </Button>
@@ -78,6 +104,7 @@ export default function BlogPost() {
           src={blog.coverImage}
           alt={blog.title}
           className="w-full h-full object-cover"
+          style={{ objectPosition: 'center 50%' }}
         />
       </div>
 
@@ -115,9 +142,15 @@ export default function BlogPost() {
 
         {/* Blocks */}
         <article className="blog-content">
-          {blog.blocks.map((block) => (
-            <BlockRenderer key={block.id} block={block} />
-          ))}
+          {displayBlocks.length > 0 ? (
+            <div className="space-y-4">
+              {displayBlocks.map((block, index) => (
+                <BlockRenderer key={block.id || `block-${index}`} block={block} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No content available.</p>
+          )}
         </article>
 
         {/* Footer */}

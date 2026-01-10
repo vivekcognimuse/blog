@@ -9,7 +9,7 @@ export function BlockRenderer({ block }: BlockRendererProps) {
   switch (block.type) {
     case 'heading1':
       return (
-        <h1 className="text-4xl font-serif font-semibold mb-6 mt-8 flex items-center gap-3">
+        <h1 className="text-4xl font-serif font-medium mb-6 mt-8 flex items-center gap-3">
           {block.emoji && <span className="text-3xl">{block.emoji}</span>}
           {block.content}
         </h1>
@@ -17,7 +17,7 @@ export function BlockRenderer({ block }: BlockRendererProps) {
 
     case 'heading2':
       return (
-        <h2 className="text-2xl font-serif font-semibold mb-4 mt-6 flex items-center gap-2">
+        <h2 className="text-2xl font-serif font-medium mb-4 mt-6 flex items-center gap-2">
           {block.emoji && <span className="text-xl">{block.emoji}</span>}
           {block.content}
         </h2>

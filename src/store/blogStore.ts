@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { BlogPost, ViewMode, SortOrder } from '@/types/blog';
-import { sampleBlogs } from '@/data/sampleBlogs';
+import { ViewMode, SortOrder } from '@/types/blog';
 
+/**
+ * BlogStore now only handles UI state (view preferences, filters, etc.)
+ * Blog data is managed by React Query hooks (useBlogs, useBlog)
+ */
 interface BlogStore {
-  blogs: BlogPost[];
   viewMode: ViewMode;
   sortOrder: SortOrder;
   searchQuery: string;
@@ -13,16 +15,11 @@ interface BlogStore {
   setSortOrder: (order: SortOrder) => void;
   setSearchQuery: (query: string) => void;
   setSelectedTags: (tags: string[]) => void;
-  addBlog: (blog: BlogPost) => void;
-  updateBlog: (id: string, updates: Partial<BlogPost>) => void;
-  deleteBlog: (id: string) => void;
-  getBlogById: (id: string) => BlogPost | undefined;
 }
 
 export const useBlogStore = create<BlogStore>()(
   persist(
-    (set, get) => ({
-      blogs: sampleBlogs,
+    (set) => ({
       viewMode: 'grid',
       sortOrder: 'newest',
       searchQuery: '',
@@ -31,21 +28,9 @@ export const useBlogStore = create<BlogStore>()(
       setSortOrder: (order) => set({ sortOrder: order }),
       setSearchQuery: (query) => set({ searchQuery: query }),
       setSelectedTags: (tags) => set({ selectedTags: tags }),
-      addBlog: (blog) => set((state) => ({ blogs: [...state.blogs, blog] })),
-      updateBlog: (id, updates) =>
-        set((state) => ({
-          blogs: state.blogs.map((blog) =>
-            blog.id === id ? { ...blog, ...updates } : blog
-          ),
-        })),
-      deleteBlog: (id) =>
-        set((state) => ({
-          blogs: state.blogs.filter((blog) => blog.id !== id),
-        })),
-      getBlogById: (id) => get().blogs.find((blog) => blog.id === id),
     }),
     {
-      name: 'blog-storage',
+      name: 'blog-ui-storage', // Changed name to avoid conflicts
     }
   )
 );

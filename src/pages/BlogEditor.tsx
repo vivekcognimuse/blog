@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useBlogStore } from '@/store/blogStore';
-import { Block, BlogPost } from '@/types/blog';
-import { BlockEditor } from '@/components/blog/BlockEditor';
+import { useBlog, useCreateBlog, useUpdateBlog, useDeleteBlog, useUploadImage } from '@/hooks/useBlogs';
+import { blocksToBlockNote, blockNoteToBlocks } from '@/lib/api/blogs';
+import { Block } from '@/types/blog';
+import { EnhancedBlockEditor } from '@/components/blog/EnhancedBlockEditor';
 import { CoverImageEditor } from '@/components/blog/CoverImageEditor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import {
   Trash2,
   X,
   Plus,
+  Loader2,
 } from 'lucide-react';
 import {
   Popover,
@@ -41,59 +43,126 @@ const commonEmojis = ['📝', '✨', '🎯', '💡', '🚀', '⭐', '🔥', '�
 export default function BlogEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getBlogById, addBlog, updateBlog, deleteBlog } = useBlogStore();
-
   const isNew = !id || id === 'new';
-  const existingBlog = id && id !== 'new' ? getBlogById(id) : null;
+  
+  // React Query hooks
+  const { data: existingBlog, isLoading: isLoadingBlog } = useBlog(isNew ? undefined : id);
+  const createBlogMutation = useCreateBlog();
+  const updateBlogMutation = useUpdateBlog();
+  const deleteBlogMutation = useDeleteBlog();
+  const uploadImageMutation = useUploadImage();
 
-  const [title, setTitle] = useState(existingBlog?.title || '');
-  const [description, setDescription] = useState(existingBlog?.description || '');
-  const [emoji, setEmoji] = useState(existingBlog?.emoji || '📝');
-  const [coverImage, setCoverImage] = useState(existingBlog?.coverImage || coverMindfulness);
-  const [tags, setTags] = useState<string[]>(existingBlog?.tags || []);
-  const [blocks, setBlocks] = useState<Block[]>(
-    existingBlog?.blocks || [
-      { id: 'initial', type: 'heading1', content: '', emoji: '📝' },
-      { id: 'initial-2', type: 'paragraph', content: '' },
-    ]
-  );
+  // Form state
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [emoji, setEmoji] = useState('📝');
+  const [coverImage, setCoverImage] = useState(coverMindfulness);
+  const [tags, setTags] = useState<string[]>([]);
+  const [blocks, setBlocks] = useState<Block[]>([]);
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
   const [newTag, setNewTag] = useState('');
+  const [coverImagePosition, setCoverImagePosition] = useState(50);
 
-  const handleSave = () => {
+  // Load existing blog data
+  useEffect(() => {
+    if (existingBlog) {
+      setTitle(existingBlog.title);
+      setDescription(existingBlog.description);
+      setEmoji(existingBlog.emoji);
+      setCoverImage(existingBlog.coverImage);
+      // Reset position when loading existing blog (default to 50%)
+      setCoverImagePosition(50);
+      setTags(existingBlog.tags);
+      // Convert blocks to our Block format
+      if (existingBlog.blocks && Array.isArray(existingBlog.blocks)) {
+        // If blocks are in BlockNote format (from Supabase), convert them
+        if (existingBlog.blocks.length > 0 && 'type' in existingBlog.blocks[0]) {
+          const blockNoteBlocks = existingBlog.blocks as any[];
+          setBlocks(blockNoteToBlocks(blockNoteBlocks));
+        } else {
+          // Already in Block format
+          setBlocks(existingBlog.blocks as Block[]);
+        }
+      } else {
+        // Initialize with empty paragraph
+        setBlocks([
+          {
+            id: `block-${Date.now()}`,
+            type: 'paragraph',
+            content: '',
+          },
+        ]);
+      }
+    } else if (isNew) {
+      // Initialize with empty paragraph for new blog
+      setBlocks([
+        {
+          id: `block-${Date.now()}`,
+          type: 'paragraph',
+          content: '',
+        },
+      ]);
+    }
+  }, [existingBlog, isNew]);
+
+
+  const handleSave = async () => {
     if (!title.trim()) {
       toast.error('Please enter a title');
       return;
     }
 
-    const blogData: BlogPost = {
-      id: existingBlog?.id || `blog-${Date.now()}`,
-      title,
-      description,
-      emoji,
-      coverImage,
-      tags,
-      publishedDate: existingBlog?.publishedDate || new Date().toISOString().split('T')[0],
-      blocks,
-      isPublished: true,
-    };
-
-    if (isNew || !existingBlog) {
-      addBlog(blogData);
-      toast.success('Blog post created!');
-    } else {
-      updateBlog(existingBlog.id, blogData);
-      toast.success('Blog post updated!');
+    try {
+      if (isNew) {
+        await createBlogMutation.mutateAsync({
+          title,
+          description,
+          emoji,
+          coverImage,
+          tags,
+          blocks: blocksToBlockNote(blocks) as any,
+          isPublished: true,
+        });
+      } else if (existingBlog) {
+        await updateBlogMutation.mutateAsync({
+          id: existingBlog.id,
+          updates: {
+            title,
+            description,
+            emoji,
+            coverImage,
+            tags,
+            blocks: blocksToBlockNote(blocks) as any,
+          },
+        });
+      }
+      navigate('/admin');
+    } catch (error) {
+      console.error('Error saving blog:', error);
     }
-
-    navigate('/admin');
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (existingBlog) {
-      deleteBlog(existingBlog.id);
-      toast.success('Blog post deleted');
-      navigate('/admin');
+      try {
+        await deleteBlogMutation.mutateAsync(existingBlog.id);
+        navigate('/admin');
+      } catch (error) {
+        console.error('Error deleting blog:', error);
+      }
+    }
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    try {
+      const url = await uploadImageMutation.mutateAsync({
+        file,
+        blogId: existingBlog?.id,
+      });
+      return url;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
     }
   };
 
@@ -107,6 +176,14 @@ export default function BlogEditor() {
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter((t) => t !== tagToRemove));
   };
+
+  if (isLoadingBlog && !isNew) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -125,9 +202,39 @@ export default function BlogEditor() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              onClick={() => navigate(`/blog/${existingBlog?.id || 'preview'}`)}
+              onClick={async () => {
+                if (existingBlog) {
+                  // Open preview in new tab
+                  window.open(`/blog/${existingBlog.id}`, '_blank');
+                } else {
+                  // For new blogs, save first then preview
+                  if (!title.trim()) {
+                    toast.error('Please enter a title first');
+                    return;
+                  }
+                  
+                  try {
+                    const savedBlog = await createBlogMutation.mutateAsync({
+                      title,
+                      description,
+                      emoji,
+                      coverImage,
+                      tags,
+                      blocks: blocksToBlockNote(blocks) as any,
+                      isPublished: true,
+                    });
+                    
+                    // Open preview in new tab after saving
+                    window.open(`/blog/${savedBlog.id}`, '_blank');
+                    toast.success('Blog saved and opened in preview');
+                  } catch (error) {
+                    console.error('Error saving blog for preview:', error);
+                    toast.error('Failed to save blog. Please try again.');
+                  }
+                }
+              }}
               className="gap-2"
-              disabled={isNew && !existingBlog}
+              disabled={createBlogMutation.isPending || updateBlogMutation.isPending}
             >
               <Eye className="h-4 w-4" />
               Preview
@@ -156,8 +263,16 @@ export default function BlogEditor() {
               </AlertDialog>
             )}
 
-            <Button onClick={handleSave} className="gap-2">
-              <Save className="h-4 w-4" />
+            <Button 
+              onClick={handleSave} 
+              className="gap-2"
+              disabled={createBlogMutation.isPending || updateBlogMutation.isPending}
+            >
+              {createBlogMutation.isPending || updateBlogMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
               Save
             </Button>
           </div>
@@ -165,7 +280,12 @@ export default function BlogEditor() {
       </header>
 
       {/* Cover Image */}
-      <CoverImageEditor coverImage={coverImage} onChange={setCoverImage} />
+      <CoverImageEditor 
+        coverImage={coverImage} 
+        position={coverImagePosition}
+        onChange={setCoverImage}
+        onPositionChange={setCoverImagePosition}
+      />
 
       {/* Content */}
       <main className="container max-w-4xl py-8">
@@ -202,14 +322,14 @@ export default function BlogEditor() {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Untitled"
-            className="text-5xl font-serif font-semibold border-none bg-transparent focus-visible:ring-0 px-0 h-auto py-2 placeholder:text-muted-foreground/50"
+            className="text-5xl font-serif font-semibold border-none bg-transparent focus-visible:ring-0 px-0 h-auto py-2 text-foreground placeholder:text-muted-foreground/50"
           />
 
           <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add a description..."
-            className="text-lg text-muted-foreground border-none bg-transparent focus-visible:ring-0 px-0 resize-none min-h-[60px] placeholder:text-muted-foreground/50"
+            className="text-lg text-foreground/80 border-none bg-transparent focus-visible:ring-0 px-0 resize-none min-h-[60px] placeholder:text-muted-foreground/50"
           />
         </div>
 
@@ -266,8 +386,26 @@ export default function BlogEditor() {
           </div>
         </div>
 
-        {/* Block Editor */}
-        <BlockEditor blocks={blocks} onChange={setBlocks} />
+        {/* Enhanced Block Editor */}
+        <div className="min-h-[500px] mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Content</h3>
+            <div className="text-sm text-muted-foreground flex items-center gap-4">
+              <span className="flex items-center gap-1">
+                <kbd className="px-2 py-1 bg-muted rounded text-xs">/</kbd>
+                <span>Add block</span>
+              </span>
+              <span className="text-xs">Drag blocks to reorder</span>
+            </div>
+          </div>
+          <EnhancedBlockEditor
+            blocks={blocks}
+            onChange={(newBlocks) => {
+              setBlocks(newBlocks);
+            }}
+            onImageUpload={handleImageUpload}
+          />
+        </div>
       </main>
     </div>
   );

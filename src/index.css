@@ -117,12 +117,12 @@
 
 @layer components {
   .blog-content h1 {
-    @apply text-4xl font-semibold mb-6 mt-8;
+    @apply text-4xl font-medium mb-6 mt-8;
     font-family: var(--font-serif);
   }
 
   .blog-content h2 {
-    @apply text-2xl font-semibold mb-4 mt-6;
+    @apply text-2xl font-medium mb-4 mt-6;
     font-family: var(--font-serif);
   }
 

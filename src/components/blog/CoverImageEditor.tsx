@@ -1,17 +1,35 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Move } from 'lucide-react';
+import { Image as ImageIcon, Move, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CoverImageEditorProps {
   coverImage: string;
+  position?: number;
   onChange: (image: string) => void;
+  onPositionChange?: (position: number) => void;
 }
 
-export function CoverImageEditor({ coverImage, onChange }: CoverImageEditorProps) {
-  const [position, setPosition] = useState(50);
+export function CoverImageEditor({ 
+  coverImage, 
+  position: externalPosition = 50,
+  onChange, 
+  onPositionChange 
+}: CoverImageEditorProps) {
+  const [position, setPosition] = useState(externalPosition);
   const [isHovering, setIsHovering] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync with external position prop
+  useEffect(() => {
+    setPosition(externalPosition);
+  }, [externalPosition]);
+
+  const handlePositionChange = (newPosition: number) => {
+    const clampedPosition = Math.max(0, Math.min(100, newPosition));
+    setPosition(clampedPosition);
+    onPositionChange?.(clampedPosition);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -53,15 +71,28 @@ export function CoverImageEditor({ coverImage, onChange }: CoverImageEditorProps
               <ImageIcon className="h-4 w-4" />
               Change cover
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setPosition((p) => Math.max(0, p - 10))}
-              className="gap-2"
-            >
-              <Move className="h-4 w-4" />
-              Reposition
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handlePositionChange(position - 10)}
+                className="gap-2"
+                title="Move image up"
+              >
+                <ArrowUp className="h-4 w-4" />
+                Up
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handlePositionChange(position + 10)}
+                className="gap-2"
+                title="Move image down"
+              >
+                <ArrowDown className="h-4 w-4" />
+                Down
+              </Button>
+            </div>
           </div>
         </>
       ) : (

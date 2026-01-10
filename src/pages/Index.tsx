@@ -1,11 +1,39 @@
 import { Link } from 'react-router-dom';
-import { useBlogStore } from '@/store/blogStore';
+import { useBlogs } from '@/hooks/useBlogs';
 import { BlogCard } from '@/components/blog/BlogCard';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
+import { getCurrentUser, onAuthStateChange } from '@/lib/auth';
+import { useEffect, useState } from 'react';
 import manojProfile from '@/assets/manoj-profile.png';
 
 export default function Index() {
-  const { blogs } = useBlogStore();
-  const recentBlogs = blogs.slice(0, 3);
+  const { data: blogs = [] } = useBlogs();
+  const recentBlogs = blogs.filter(blog => blog.isPublished).slice(0, 3);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const user = await getCurrentUser();
+        setIsAdmin(!!user);
+      } catch {
+        setIsAdmin(false);
+      }
+    };
+    
+    // Check on mount
+    checkAdmin();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = onAuthStateChange((user) => {
+      setIsAdmin(!!user);
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -14,13 +42,28 @@ export default function Index() {
         <Link to="/" className="text-2xl font-serif font-semibold text-foreground">
           Manoj
         </Link>
-        <nav>
+        <nav className="flex items-center gap-4">
           <Link 
             to="/blog" 
             className="text-foreground hover:text-muted-foreground transition-colors font-sans"
           >
             Blog
           </Link>
+          {isAdmin ? (
+            <Link to="/admin">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Settings className="h-4 w-4" />
+                Admin
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/login">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Settings className="h-4 w-4" />
+                Admin
+              </Button>
+            </Link>
+          )}
         </nav>
       </header>
 

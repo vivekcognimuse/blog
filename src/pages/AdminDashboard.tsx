@@ -1,14 +1,18 @@
 import { useBlogStore } from '@/store/blogStore';
+import { useBlogs } from '@/hooks/useBlogs';
 import { BlogToolbar } from '@/components/blog/BlogToolbar';
 import { BlogGrid, BlogGroupedView } from '@/components/blog/BlogGrid';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Plus, Loader2, LogOut } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
+import { signOut } from '@/lib/auth';
+import { toast } from 'sonner';
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
+  const { data: blogs = [], isLoading } = useBlogs();
   const {
-    blogs,
     viewMode,
     sortOrder,
     searchQuery,
@@ -16,6 +20,15 @@ export default function AdminDashboard() {
     setSortOrder,
     setSearchQuery,
   } = useBlogStore();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (error) {
+      // Error already handled in signOut
+    }
+  };
 
   const filteredAndSortedBlogs = useMemo(() => {
     let result = [...blogs];
@@ -40,18 +53,32 @@ export default function AdminDashboard() {
     return result;
   }, [blogs, searchQuery, sortOrder]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border">
         <div className="container py-6">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-serif font-semibold text-foreground">My blog</h1>
-            <Link to="/admin/new">
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Post
+            <div className="flex items-center gap-2">
+              <Link to="/admin/new">
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Post
+                </Button>
+              </Link>
+              <Button variant="ghost" onClick={handleLogout} className="gap-2">
+                <LogOut className="h-4 w-4" />
+                Logout
               </Button>
-            </Link>
+            </div>
           </div>
         </div>
       </header>
