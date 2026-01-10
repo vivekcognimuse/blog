@@ -281,7 +281,8 @@ export async function uploadImage(file: File, blogId?: string): Promise<string> 
 
   const fileExt = file.name.split('.').pop();
   const fileName = `${user.id}/${blogId || 'temp'}/${Date.now()}.${fileExt}`;
-  const filePath = `blog-images/${fileName}`;
+  // Don't include bucket name in path since we're using .from('blog-images')
+  const filePath = fileName;
 
   const { error: uploadError } = await supabase.storage
     .from('blog-images')

@@ -285,6 +285,7 @@ export default function BlogEditor() {
         position={coverImagePosition}
         onChange={setCoverImage}
         onPositionChange={setCoverImagePosition}
+        onImageUpload={handleImageUpload}
       />
 
       {/* Content */}

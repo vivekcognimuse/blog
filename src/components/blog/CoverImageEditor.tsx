@@ -8,16 +8,19 @@ interface CoverImageEditorProps {
   position?: number;
   onChange: (image: string) => void;
   onPositionChange?: (position: number) => void;
+  onImageUpload?: (file: File) => Promise<string>;
 }
 
 export function CoverImageEditor({ 
   coverImage, 
   position: externalPosition = 50,
   onChange, 
-  onPositionChange 
+  onPositionChange,
+  onImageUpload
 }: CoverImageEditorProps) {
   const [position, setPosition] = useState(externalPosition);
   const [isHovering, setIsHovering] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync with external position prop
@@ -31,9 +34,29 @@ export function CoverImageEditor({
     onPositionChange?.(clampedPosition);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (!file) return;
+
+    // If onImageUpload is provided, upload to Supabase
+    if (onImageUpload) {
+      setIsUploading(true);
+      try {
+        const url = await onImageUpload(file);
+        onChange(url);
+      } catch (error) {
+        console.error('Error uploading cover image:', error);
+        // Fallback to base64 for preview if upload fails
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          onChange(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      } finally {
+        setIsUploading(false);
+      }
+    } else {
+      // Fallback to base64 if no upload handler
       const reader = new FileReader();
       reader.onload = (e) => {
         onChange(e.target?.result as string);
@@ -67,9 +90,10 @@ export function CoverImageEditor({
               size="sm"
               onClick={() => fileInputRef.current?.click()}
               className="gap-2"
+              disabled={isUploading}
             >
               <ImageIcon className="h-4 w-4" />
-              Change cover
+              {isUploading ? 'Uploading...' : 'Change cover'}
             </Button>
             <div className="flex flex-col gap-2">
               <Button
